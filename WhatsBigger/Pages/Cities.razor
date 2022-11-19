@@ -45,7 +45,7 @@ else
 
 @code {
     [Parameter]
-    public string? Type { get; set; }
+    public string? Category { get; set; }
 
     protected City[] CitiesData { get; set;}
     private Random random = new Random();
@@ -58,11 +58,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        Type = Type ?? "Global";
+        Category = Category ?? "Global";
         results = new List<bool>();
         choices = new List<City>();
 
-        CitiesData = await Http.GetFromJsonAsync<City[]>($"cities-data/{Type}.json");
+        CitiesData = await Http.GetFromJsonAsync<City[]>($"cities-data/{Category}.json");
 
         previousChoices = new Dictionary<string, List<string>>();
 
@@ -90,7 +90,8 @@ else
         var choiceOne = CitiesData[random.Next(CitiesData.Length)];
         var choiceTwo = CitiesData[random.Next(CitiesData.Length)];
 
-        while (previousChoices[$"{choiceOne.Country}-{choiceOne.Name}"].Contains($"{choiceTwo.Country}-{choiceTwo.Name}") && choiceOne.Name == choiceTwo.Name)
+        while (previousChoices[$"{choiceOne.Country}-{choiceOne.Name}"]
+            .Contains($"{choiceTwo.Country}-{choiceTwo.Name}") && choiceOne.Name == choiceTwo.Name)
         {
             choiceOne = CitiesData[random.Next(CitiesData.Length)];
             choiceTwo = CitiesData[random.Next(CitiesData.Length)];
