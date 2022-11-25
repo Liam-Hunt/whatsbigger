@@ -1,7 +1,30 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    height: 100%;
+    background: rgb(52,0,80);
+    background: linear-gradient(0deg, rgba(52,0,80,1) 0%, rgba(26,0,112,1) 79%, rgba(0,19,99,1) 100%);
+    color: white;
+    font-family: 'Poppins', sans-serif;
+}
+
+.correct-text {
+    color: #16a34a;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.incorrect-text {
+    color: #dc2626;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.choice-button{
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 2em;
+    width: 100%
 }
 
 h1:focus {

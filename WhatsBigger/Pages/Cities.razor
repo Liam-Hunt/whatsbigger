@@ -1,132 +1,143 @@
 ﻿@using WhatsBigger.Core
+@page "/cities/{category}"
 
-@page "/cities/{type}"
+@inject NavigationManager Navigation
 @inject HttpClient Http
 
-<h1>Which city is bigger?</h1>
+<div class="row">
+	<div class="col">
+		<h1>Which city is bigger?</h1>
 
-@if(gameState == State.Choosing)
+		@if (results.Any())
+		{
+			<p>Score: @results.Count(x => x) / @results.Count() (@(Math.Round(((double)results.Count(x => x) / (double)results.Count()) * 100.0, 1))%)</p>
+		}
+	</div>
+</div>
+
+@if (gameState == State.Choosing)
 {
-    @foreach(var choice in choices)
-    {
-        <button @onclick="@(e => Choose(e, choice.Name))">@choice.Name</button>
-    }
+	<div class="row">
+
+		@foreach (var choice in choices)
+		{
+			<div class="col">
+				<button @onclick="@(e => Choose(e, choice.Name))" class="choice-button">@choice.Name</button>
+			</div>
+		}
+	</div>
 }
-else if(gameState == State.ChoiceMade)
+else if (gameState == State.ChoiceMade)
 {
-    @if (results.Last())
-    {
-        <h3>Correct!</h3>
-    }
-    else
-    {
-        <h3>Incorrect :(</h3>
-    }
+	@if (results.Last())
+	{
+		<h3 class="correct-text">Correct!</h3>
+	}
+	else
+	{
+		<h3 class="incorrect-text">Incorrect :(</h3>
+	}
 
-    <div class="row">
-        @foreach(var choice in choices)
-        {
-            <div class="col">
-                <p>@choice.Name</p>
-                <p>@choice.Population</p>
-            </div>           
-        }
-    </div>
+	<div class="row">
+		<div class="col">
+			@foreach (var choice in choices)
+			{
+				<p>@choice.Name population: @String.Format("{0:n0}", choice.Population)</p>
+			}
+		</div>
+	</div>
 
-    <button @onclick="NewChoices">Next</button>
+	<button @onclick="NewChoices" class="d-flex p-2">Next <span class="material-symbols-outlined">navigate_next</span></button>
 }
 else
 {
-    <p>Game ended!</p>
+	<p>Game ended!</p>
 }
 
-<p>Score: @results.Where(x => x).Count() / @results.Count()</p>
-
-
 @code {
-    [Parameter]
-    public string? Category { get; set; }
+	[Parameter]
+	public string? Category { get; set; }
 
-    protected City[] CitiesData { get; set;}
-    private Random random = new Random();
+	protected City[] CitiesData { get; set; }
+	private Random random = new Random();
 
-    private List<City> choices { get; set; }
-    private Dictionary<string,List<string>> previousChoices { get; set; }
+	private List<City> choices { get; set; }
+	private Dictionary<string, List<string>> previousChoices { get; set; }
 
-    private State gameState { get; set; }
-    private List<bool> results { get; set; }
+	private State gameState { get; set; }
+	private List<bool> results { get; set; }
 
-    protected override async Task OnInitializedAsync()
-    {
-        Category = Category ?? "Global";
-        results = new List<bool>();
-        choices = new List<City>();
+	protected override async Task OnInitializedAsync()
+	{
+		Category = Category ?? "Global";
+		results = new List<bool>();
+		choices = new List<City>();
 
-        CitiesData = await Http.GetFromJsonAsync<City[]>($"cities-data/{Category}.json");
+		CitiesData = await Http.GetFromJsonAsync<City[]>($"cities-data/{Category}.json");
 
-        previousChoices = new Dictionary<string, List<string>>();
+		previousChoices = new Dictionary<string, List<string>>();
 
-        foreach(var city in CitiesData)
-        {
-            previousChoices.Add($"{city.Country}-{city.Name}", new List<string>());
-        }
+		foreach (var city in CitiesData)
+		{
+			previousChoices.Add($"{city.Country}-{city.Name}", new List<string>());
+		}
 
-        NewChoices();
+		NewChoices();
 
-        await base.OnInitializedAsync();
-    }
+		await base.OnInitializedAsync();
+	}
 
-    private void NewChoices()
-    {
-        choices = new List<City>();
+	private void NewChoices()
+	{
+		choices = new List<City>();
 
-        if (previousChoices.All(x => x.Value.Count() == CitiesData.Length - 1))
-        {
-            gameState = State.GameOver;
+		if (previousChoices.All(x => x.Value.Count() == CitiesData.Length - 1))
+		{
+			gameState = State.GameOver;
 
-            return;
-        }
+			return;
+		}
 
-        var choiceOne = CitiesData[random.Next(CitiesData.Length)];
-        var choiceTwo = CitiesData[random.Next(CitiesData.Length)];
+		var choiceOne = CitiesData[random.Next(CitiesData.Length)];
+		var choiceTwo = CitiesData[random.Next(CitiesData.Length)];
 
-        while (previousChoices[$"{choiceOne.Country}-{choiceOne.Name}"]
-            .Contains($"{choiceTwo.Country}-{choiceTwo.Name}") && choiceOne.Name == choiceTwo.Name)
-        {
-            choiceOne = CitiesData[random.Next(CitiesData.Length)];
-            choiceTwo = CitiesData[random.Next(CitiesData.Length)];
-        }
+		while (previousChoices[$"{choiceOne.Country}-{choiceOne.Name}"]
+			.Contains($"{choiceTwo.Country}-{choiceTwo.Name}") && choiceOne.Name == choiceTwo.Name)
+		{
+			choiceOne = CitiesData[random.Next(CitiesData.Length)];
+			choiceTwo = CitiesData[random.Next(CitiesData.Length)];
+		}
 
-        previousChoices[$"{choiceOne.Country}-{choiceOne.Name}"].Add($"{choiceTwo.Country}-{choiceTwo.Name}");
-        previousChoices[$"{choiceTwo.Country}-{choiceTwo.Name}"].Add($"{choiceOne.Country}-{choiceOne.Name}");
+		previousChoices[$"{choiceOne.Country}-{choiceOne.Name}"].Add($"{choiceTwo.Country}-{choiceTwo.Name}");
+		previousChoices[$"{choiceTwo.Country}-{choiceTwo.Name}"].Add($"{choiceOne.Country}-{choiceOne.Name}");
 
-        choices.Add(choiceOne);
-        choices.Add(choiceTwo);
+		choices.Add(choiceOne);
+		choices.Add(choiceTwo);
 
-        gameState = State.Choosing;
-    }
+		gameState = State.Choosing;
+	}
 
-    private void Choose(MouseEventArgs e, string name)
-    {
-        var biggestCity = choices.First(x => 
-            x.Population == choices.Max(y => y.Population));
+	private void Choose(MouseEventArgs e, string name)
+	{
+		var biggestCity = choices.First(x =>
+			x.Population == choices.Max(y => y.Population));
 
-        if(name == biggestCity.Name)
-        {
-            results.Add(true);
-        }
-        else
-        {
-            results.Add(false);
-        }
+		if (name == biggestCity.Name)
+		{
+			results.Add(true);
+		}
+		else
+		{
+			results.Add(false);
+		}
 
-        gameState = State.ChoiceMade;
-    }
+		gameState = State.ChoiceMade;
+	}
 
-    public enum State
-    {
-        Choosing,
-        ChoiceMade,
-        GameOver
-    }
+	public enum State
+	{
+		Choosing,
+		ChoiceMade,
+		GameOver
+	}
 }
